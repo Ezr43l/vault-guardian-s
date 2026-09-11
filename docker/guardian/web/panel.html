@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0e1418">
+  <title>Vault Guardian</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="stylesheet" href="/panel.css">
+</head>
+<body>
+  <section id="login-page" class="login-page">
+    <div class="login-intro">
+      <div class="login-brand">
+        <img src="/icon-512.png" alt="">
+        <span>Vault Guardian</span>
+      </div>
+      <div class="login-copy">
+        <p class="eyebrow">CONTROL DE ACCESO</p>
+        <h1>Vaultwarden en alta disponibilidad</h1>
+        <p>Administración del grupo, replicación y recuperación desde una única interfaz.</p>
+      </div>
+      <div class="login-meta">
+        <span>Sesión local</span>
+        <span>2FA TOTP</span>
+        <span id="login-version">v1.0.17</span>
+      </div>
+    </div>
+    <div class="login-panel">
+      <form id="login-form" class="login-form">
+        <div class="login-heading">
+          <img src="/favicon.png" alt="">
+          <div><h2 id="login-title">Iniciar sesión</h2><p id="login-subtitle">Cuenta de Vault Guardian</p></div>
+        </div>
+        <div id="login-unconfigured" class="login-state hidden">
+          Crea la primera cuenta de Vault Guardian. Se distribuirá a los miembros configurados del grupo.
+        </div>
+        <label>Usuario
+          <input id="login-username" name="username" autocomplete="username" required autofocus>
+        </label>
+        <label id="setup-display-wrap" class="hidden">Nombre visible
+          <input id="setup-display-name" name="display_name" autocomplete="name" maxlength="120">
+        </label>
+        <label>Contraseña
+          <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <label id="setup-confirm-wrap" class="hidden">Confirmar contraseña
+          <input id="setup-confirm-password" name="password_confirmation" type="password" autocomplete="new-password">
+        </label>
+        <label id="setup-cluster-wrap" class="hidden">Código de un grupo existente (opcional)
+          <input id="setup-cluster-token" name="cluster_token" type="password" autocomplete="off" minlength="32">
+          <small>Déjalo vacío para crear un grupo nuevo. Para unir este nodo, pega el código mostrado por otro Vault Guardian.</small>
+        </label>
+        <label id="setup-access-wrap" class="hidden">Acceso a este portal
+          <select id="setup-portal-access" name="portal_access">
+            <option value="https">HTTPS mediante proxy (recomendado)</option>
+            <option value="http">HTTP sólo en una LAN o VPN aislada</option>
+          </select>
+          <small>Esta elección controla la cookie de sesión. El resto se configura dentro de la app.</small>
+        </label>
+        <label id="login-factor-wrap" class="hidden">Código 2FA o de recuperación
+          <input id="login-factor" name="second_factor" inputmode="numeric" autocomplete="one-time-code">
+        </label>
+        <button id="login-submit" class="button primary login-submit" type="submit">Entrar</button>
+        <p id="login-message" class="form-message" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+
+  <div id="app-shell" class="app-shell hidden">
+    <header class="app-header">
+      <a class="brand" href="#inicio" data-view-link="inicio" aria-label="Ir al resumen">
+        <img src="/favicon.png" alt="">
+        <span><strong>Vault Guardian</strong><small id="header-node">—</small></span>
+      </a>
+      <div class="header-status" aria-label="Estado del sistema">
+        <span id="mode" class="chip">—</span>
+        <span id="top-protection" class="chip">—</span>
+        <span id="heartbeat" class="status-dot">conectando</span>
+      </div>
+      <div class="header-account">
+        <button id="account-button" class="button secondary account-button" type="button">
+          <span id="current-user">—</span>
+          <span class="mobile-account-label" aria-hidden="true">Cuenta</span>
+        </button>
+        <button id="disconnect" class="button secondary" type="button">Salir</button>
+      </div>
+    </header>
+
+    <nav class="app-nav" aria-label="Secciones de Vault Guardian">
+      <button type="button" data-view="inicio" class="active">Resumen</button>
+      <button type="button" data-view="configuracion">Grupo</button>
+      <button type="button" data-view="instancias">Vaultwarden</button>
+      <button type="button" data-view="operacion">Operación</button>
+      <button type="button" data-view="seguridad">Seguridad</button>
+    </nav>
+
+    <main class="content">
+      <div id="notice" class="notice hidden" aria-live="polite"></div>
+
+      <section class="view active" data-view-panel="inicio" id="overview">
+        <div class="page-heading">
+          <div><p class="eyebrow">RESUMEN</p><h1>Panel operativo</h1><p>Protección, servicios, servidores e incidencias del grupo.</p></div>
+          <button id="overview-refresh" class="button secondary" type="button">Actualizar</button>
+        </div>
+        <article class="status-banner">
+          <div><span id="next-kicker" class="eyebrow">ESTADO</span><strong id="next-title">Consultando el sistema</strong><p id="next-copy">Esperando datos del nodo.</p></div>
+          <button id="next-action" class="button secondary" type="button">Ver operación</button>
+        </article>
+        <div class="summary-grid">
+          <article class="summary-card"><span>Servidores disponibles</span><strong id="overview-nodes">—</strong><small id="overview-nodes-detail">—</small></article>
+          <article class="summary-card"><span>Vaultwarden protegidos</span><strong id="overview-protected">—</strong><small id="overview-protected-detail">—</small></article>
+          <article class="summary-card"><span>Política</span><strong id="overview-policy">—</strong><small id="overview-policy-detail">—</small></article>
+          <article class="summary-card"><span>Última actividad</span><strong id="overview-last-event">—</strong><small id="overview-last-event-detail">—</small></article>
+        </div>
+        <div class="dashboard-grid">
+          <article class="panel dashboard-panel dashboard-services-panel">
+            <div class="panel-heading"><div><h2>Vaultwarden</h2><p>Protección y portador actual de cada servicio.</p></div><span id="overview-services-badge" class="badge">—</span></div>
+            <div id="overview-services" class="dashboard-list"><span class="empty">Consultando servicios…</span></div>
+          </article>
+          <article class="panel dashboard-panel">
+            <div class="panel-heading"><div><h2>Servidores</h2><p>Disponibilidad de los miembros del grupo.</p></div><span id="overview-servers-badge" class="badge">—</span></div>
+            <div id="overview-servers" class="dashboard-list"><span class="empty">Consultando servidores…</span></div>
+          </article>
+          <article class="panel dashboard-panel" id="overview-issues-card">
+            <div class="panel-heading"><div><h2>Atención</h2><p>Situaciones que requieren revisión.</p></div><span id="overview-issues-badge" class="badge">—</span></div>
+            <div id="overview-issues" class="dashboard-list"><span class="empty">Consultando incidencias…</span></div>
+          </article>
+          <article class="panel dashboard-panel">
+            <div class="panel-heading"><div><h2>Actividad reciente</h2><p>Últimos cambios registrados por Guardian.</p></div><button class="button small secondary" type="button" data-view-link="operacion">Ver historial</button></div>
+            <div id="overview-activity" class="dashboard-list"><span class="empty">Consultando actividad…</span></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" data-view-panel="configuracion" id="setup-panel">
+        <div class="page-heading">
+          <div><p class="eyebrow">GRUPO</p><h1>Configuración</h1><p>Miembros y política compartida.</p></div>
+          <span id="setup-badge" class="badge">—</span>
+        </div>
+        <div id="setup-issues" class="setup-issues hidden"></div>
+        <details id="setup-checks-wrap" class="panel setup-audit">
+          <summary>
+            <span><strong>Requisitos de instalación</strong><small id="setup-checks-summary">Consultando el grupo…</small></span>
+            <span id="setup-checks-badge" class="badge">—</span>
+          </summary>
+          <div id="setup-checks" class="checklist"><span class="empty">Consultando requisitos…</span></div>
+        </details>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div><h2>Topología</h2><p>Estado de los Guardian que forman el grupo.</p></div>
+            <span id="policy-consistency" class="badge">—</span>
+          </div>
+          <div id="cluster-members" class="member-summary"><span class="empty">Consultando servidores…</span></div>
+          <details class="advanced">
+            <summary>Datos técnicos del nodo actual</summary>
+            <dl class="technical-list">
+              <dt>Nombre</dt><dd id="local-node">—</dd>
+              <dt>IP fija</dt><dd id="local-node-ip">—</dd>
+              <dt>API floating-IP</dt><dd id="local-floating-api">—</dd>
+              <dt>Guardian remotos</dt><dd id="local-peers">—</dd>
+            </dl>
+          </details>
+        </article>
+
+        <form id="keepalived-integration-form">
+          <fieldset id="keepalived-integration-fields">
+            <article class="panel">
+              <div class="panel-heading">
+                <div><h2>Conexión con Keepalived</h2><p>Autoriza la reserva automática de direcciones flotantes.</p></div>
+                <span id="keepalived-integration-badge" class="badge">—</span>
+              </div>
+              <div class="keepalived-control-grid">
+                <label class="keepalived-token-field">Token de integración
+                  <input id="keepalived-integration-token" type="password" autocomplete="off" placeholder="fip_…" minlength="32">
+                </label>
+                <div class="keepalived-actions">
+                  <button class="button primary" type="submit">Guardar conexión</button>
+                  <button id="show-enrollment-token" class="button secondary" type="button">Mostrar código del grupo</button>
+                </div>
+                <small class="keepalived-help">Introduce el token generado por el Keepalived de este servidor. Se guarda en el estado local y nunca vuelve a mostrarse.</small>
+                <span id="keepalived-integration-message" class="form-message"></span>
+                <code id="enrollment-token" class="hidden"></code>
+              </div>
+            </article>
+          </fieldset>
+        </form>
+
+        <article id="cluster-builder-wrap" class="panel cluster-manager">
+          <div class="panel-heading">
+            <div><h2>Servidores</h2><p>Alta y edición de miembros del grupo.</p></div>
+            <button id="add-member" class="button primary" type="button">Añadir servidor</button>
+          </div>
+          <form id="cluster-form">
+            <fieldset id="cluster-fields">
+              <div id="member-rows" class="member-rows"></div>
+              <div class="cluster-transport">
+                <div class="cluster-subheading">
+                  <h3>Comunicación interna</h3>
+                  <p>Protocolo utilizado entre los Guardian del grupo y sus servicios Keepalived.</p>
+                </div>
+                <label class="check-row cluster-http-option">
+                  <input id="cluster-allow-http" type="checkbox">
+                  <span><strong>Permitir conexiones HTTP en la red interna</strong><small>Desactivado exige HTTPS. Actívalo únicamente si las direcciones de Guardian o Keepalived usan HTTP dentro de una LAN o VPN aislada.</small></span>
+                </label>
+              </div>
+              <div class="form-actions">
+                <button class="button primary" type="submit">Guardar grupo</button>
+                <button id="reconcile-members" class="button secondary" type="button">Completar réplicas</button>
+                <span id="cluster-message" class="form-message"></span>
+              </div>
+            </fieldset>
+          </form>
+          <p id="cluster-access-hint" class="form-message"></p>
+        </article>
+
+        <form id="settings-form">
+          <fieldset id="settings-fields">
+            <article class="panel">
+              <div class="panel-heading"><div><h2>Política de protección</h2><p>Modo y límites comunes a todos los Guardian.</p></div></div>
+              <div class="mode-grid">
+                <label><input type="radio" name="mode-choice" value="observe"><span><strong>Pausada</strong><small>Supervisión sin replicación.</small></span></label>
+                <label><input type="radio" name="mode-choice" value="dry-run"><span><strong>Simulación</strong><small>Validación sin escritura remota.</small></span></label>
+                <label><input type="radio" name="mode-choice" value="active"><span><strong>Activa</strong><small>Replicación habilitada.</small></span></label>
+              </div>
+              <select id="setting-mode" class="hidden" aria-hidden="true">
+                <option value="observe">observe</option><option value="dry-run">dry-run</option><option value="active">active</option>
+              </select>
+              <div id="active-effect" class="effect-box hidden">
+                Sólo el portador de la IP de cada servicio envía datos. Los destinos aplican la réplica después de crear un backup.
+              </div>
+              <details id="policy-settings" class="policy-settings">
+                <summary><span><strong>Intervalo y límites</strong><small id="policy-settings-summary">Frecuencia, retención y tamaño máximo.</small></span></summary>
+                <div class="form-grid three">
+                  <label>Intervalo
+                    <span class="input-suffix"><input id="setting-interval" required type="number" min="5" max="86400"><em>s</em></span>
+                  </label>
+                  <label>Backups conservados
+                    <input id="setting-retention" required type="number" min="1" max="1000">
+                  </label>
+                  <label>Límite por réplica
+                    <span class="input-suffix"><input id="setting-package" required type="number" min="1" max="256"><em>MB</em></span>
+                  </label>
+                </div>
+              </details>
+              <div class="form-actions">
+                <button class="button primary" type="submit">Guardar política</button>
+                <span id="settings-message" class="form-message"></span>
+              </div>
+            </article>
+          </fieldset>
+        </form>
+
+        <form id="application-settings-form">
+          <fieldset id="application-settings-fields">
+            <article class="panel">
+              <div class="panel-heading">
+                <div><h2>Ajustes de la aplicación</h2><p>Acceso al portal, sesiones y conservación del historial en este Guardian.</p></div>
+                <span id="application-settings-badge" class="badge">—</span>
+              </div>
+              <div class="form-grid two">
+                <label>Acceso al portal
+                  <select id="application-portal-access" required>
+                    <option value="https">HTTPS mediante proxy</option>
+                    <option value="http">HTTP en red aislada</option>
+                  </select>
+                  <small>HTTP sólo debe utilizarse en una red de administración aislada.</small>
+                </label>
+                <label>Duración de la sesión
+                  <span class="input-suffix"><input id="application-session" required type="number" min="5" max="480"><em>min</em></span>
+                  <small>Se aplica a las sesiones que se creen después de guardar.</small>
+                </label>
+                <label>Tamaño máximo del historial
+                  <span class="input-suffix"><input id="application-history-size" required type="number" min="1" max="256"><em>MB</em></span>
+                </label>
+                <label>Entradas máximas del historial
+                  <input id="application-history-entries" required type="number" min="500" max="100000">
+                </label>
+              </div>
+              <div class="form-actions">
+                <button class="button primary" type="submit">Guardar ajustes</button>
+                <span id="application-settings-message" class="form-message"></span>
+              </div>
+            </article>
+          </fieldset>
+        </form>
+
+        <form id="api-integration-form">
+          <fieldset id="api-integration-fields">
+            <article class="panel">
+              <div class="panel-heading">
+                <div><h2>Aplicaciones con acceso a la API</h2><p>Credenciales independientes para los servicios que consumen este Vault Guardian.</p></div>
+                <span id="api-integration-badge" class="badge">—</span>
+              </div>
+              <div id="api-integration-list" class="integration-list"><span class="empty">Consultando aplicaciones…</span></div>
+              <div id="api-token-result" class="token-result hidden" role="status">
+                <div><strong id="api-token-result-title">Token disponible</strong><small>Guárdalo en la aplicación correspondiente.</small></div>
+                <code id="api-token-result-value"></code>
+                <button id="copy-api-token" class="button secondary small" type="button">Copiar token</button>
+              </div>
+              <div class="integration-create">
+                <div class="cluster-subheading">
+                  <h3>Añadir aplicación</h3>
+                  <p>El nombre permite identificar y revocar cada consumidor por separado.</p>
+                </div>
+                <div class="form-grid two">
+                  <label>Nombre de la aplicación
+                    <input id="api-integration-name" required maxlength="80" placeholder="Ej. Monitorización, RTFM…">
+                    <small>Utiliza un nombre único que permita reconocer al consumidor.</small>
+                  </label>
+                  <label>Token propio (opcional)
+                    <input id="api-integration-token" type="password" autocomplete="new-password" minlength="32" placeholder="Vacío para generarlo automáticamente">
+                    <small>Si lo dejas vacío, Vault Guardian genera un Bearer seguro.</small>
+                  </label>
+                </div>
+                <div class="form-actions">
+                  <button class="button primary" type="submit">Crear aplicación</button>
+                  <span id="api-integration-message" class="form-message"></span>
+                </div>
+              </div>
+            </article>
+          </fieldset>
+        </form>
+
+        <form id="private-ca-form">
+          <fieldset id="private-ca-fields">
+            <article class="panel">
+              <div class="panel-heading">
+                <div><h2>CA privada</h2><p>Certificados de confianza adicionales para conexiones HTTPS internas.</p></div>
+                <span id="private-ca-badge" class="badge">—</span>
+              </div>
+              <label>Certificado o cadena PEM
+                <textarea id="private-ca-pem" rows="7" spellcheck="false" placeholder="-----BEGIN CERTIFICATE-----"></textarea>
+                <small>Pega aquí la CA privada completa. No es necesario configurar rutas ni montajes en la plantilla.</small>
+              </label>
+              <div class="form-actions">
+                <button class="button primary" type="submit">Guardar CA</button>
+                <button id="disable-private-ca" class="button secondary" type="button">Usar CA del sistema</button>
+                <span id="private-ca-message" class="form-message"></span>
+              </div>
+            </article>
+          </fieldset>
+        </form>
+      </section>
+
+      <section class="view" data-view-panel="instancias" id="instances-panel">
+        <div class="page-heading">
+          <div><p class="eyebrow">VAULTWARDEN</p><h1>Servicios protegidos</h1><p>Instancias gestionadas por el grupo.</p></div>
+          <div class="page-actions">
+            <button id="refresh-instances" class="button secondary" type="button">Actualizar estado</button>
+            <button id="new-instance" class="button primary admin-control" type="button">Añadir Vaultwarden</button>
+          </div>
+        </div>
+        <div id="instances" class="instance-list"><span class="empty">Cargando servicios…</span></div>
+
+        <article id="provision-form-wrap" class="panel provision-panel hidden">
+          <div class="panel-heading">
+            <div><h2>Alta automática</h2><p>Creación de réplicas y reserva de IP flotante.</p></div>
+            <button id="cancel-provision" class="icon-button" type="button" aria-label="Cerrar">×</button>
+          </div>
+          <div class="automation-strip" aria-label="Fases de la operación">
+            <span><b>1</b> Validar</span><span><b>2</b> Crear</span><span><b>3</b> Copiar</span><span><b>4</b> Verificar</span><span><b>5</b> Reservar IP</span>
+          </div>
+          <form id="provision-form">
+            <fieldset id="provision-fields">
+              <div class="form-grid two">
+                <label>Contenedor de origen
+                  <select id="provision-source" required><option value="">Buscando contenedores…</option></select>
+                </label>
+                <label>Nombre visible
+                  <input id="provision-display-name" required maxlength="80" placeholder="Vaultwarden 1">
+                </label>
+              </div>
+              <div id="provision-candidate" class="candidate-detail"><span class="empty">Selecciona un contenedor.</span></div>
+              <div id="provision-requirements" class="requirement-box"><span>Consultando los servidores…</span></div>
+              <div id="provision-destinations" class="panel-subsection">
+                <div class="panel-heading">
+                  <div><h3>Carpetas de las nuevas réplicas</h3><p>Indica la ruta host completa en cada servidor de destino. Si la carpeta final no existe, Guardian la creará; si ya existe y está vacía, la utilizará.</p></div>
+                </div>
+                <div id="provision-destination-fields" class="form-grid two"></div>
+                <p class="form-hint">La ruta debe quedar dentro de la raíz montada como <code>/instances</code> en la plantilla. Una carpeta que ya contenga datos nunca se sobrescribe.</p>
+              </div>
+              <details class="advanced">
+                <summary>Parámetros técnicos</summary>
+                <div class="form-grid two">
+                  <label>Identificador
+                    <input id="provision-instance-id" required pattern="[A-Za-z0-9][A-Za-z0-9_.-]*" placeholder="vaultwarden-1">
+                  </label>
+                  <label>Directorio de datos
+                    <input id="provision-data-directory" required pattern="[A-Za-z0-9][A-Za-z0-9_.-]*" placeholder="vaultwarden-1">
+                  </label>
+                  <label>Ruta de salud
+                    <input id="provision-health-path" required value="/alive" pattern="/.*">
+                  </label>
+                </div>
+                <label class="check-row"><input id="provision-include-sends" type="checkbox" checked><span><strong>Incluir Sends</strong><small>Copia también los archivos de Bitwarden Send.</small></span></label>
+              </details>
+              <div id="provision-plan" class="plan-summary"></div>
+              <label class="protection-toggle">
+                <input id="provision-confirm" type="checkbox" required>
+                <span><strong>Autorizar el alta</strong><small>Guardian creará las réplicas y reservará la IP cuando todas estén sanas.</small></span>
+              </label>
+              <div class="form-actions">
+                <button id="start-provision" class="button primary" type="submit">Iniciar alta</button>
+                <span id="provision-message" class="form-message" aria-live="polite"></span>
+              </div>
+            </fieldset>
+          </form>
+          <div id="provision-progress" class="provision-progress hidden" aria-live="polite">
+            <div class="panel-heading"><div><h3 id="provision-stage">Preparando la operación</h3></div><span id="provision-badge" class="badge">en curso</span></div>
+            <ol id="provision-steps" class="progress-steps">
+              <li data-provision-step="validated">Validar servidores</li>
+              <li data-provision-step="snapshot_ready">Crear instantánea cifrada</li>
+              <li data-provision-step="replicas_prepared">Crear contenedores</li>
+              <li data-provision-step="data_applied">Copiar datos</li>
+              <li data-provision-step="replicas_ready">Comprobar réplicas</li>
+              <li data-provision-step="source_registered">Registrar servicio</li>
+              <li data-provision-step="complete">Reservar IP flotante</li>
+            </ol>
+            <div id="provision-nodes" class="provision-nodes"></div>
+            <p id="provision-result" class="form-message"></p>
+          </div>
+        </article>
+
+        <article id="instance-form-wrap" class="panel editor-panel hidden">
+          <form id="instance-form">
+            <div class="panel-heading"><div><h2 id="instance-form-title">Editar Vaultwarden</h2><p>Registro técnico del servicio.</p></div><button id="cancel-edit" class="icon-button" type="button" aria-label="Cerrar">×</button></div>
+            <div class="form-grid two">
+              <label>Nombre visible
+                <input id="instance-display-name" required maxlength="80" placeholder="Vaultwarden 1">
+              </label>
+              <label>Contenedor
+                <input id="instance-container" required pattern="[A-Za-z0-9][A-Za-z0-9_.-]*" placeholder="vaultwarden">
+              </label>
+              <label>Directorio de datos
+                <input id="instance-data-dir" required placeholder="/instances/vaultwarden-1">
+              </label>
+              <label>Puerto de salud
+                <input id="instance-health-port" required type="number" min="1" max="65535" placeholder="8080">
+              </label>
+            </div>
+            <div id="discovery" class="discovery"><span class="empty">Consultando montajes…</span></div>
+            <details class="advanced">
+              <summary>Parámetros técnicos</summary>
+              <div class="form-grid two">
+                <label>Identificador
+                  <input id="instance-id" required pattern="[A-Za-z0-9][A-Za-z0-9_.-]*" placeholder="vaultwarden-1">
+                </label>
+                <label>Servicio floating-IP
+                  <input id="instance-floating-service" required pattern="[A-Za-z0-9][A-Za-z0-9_.-]*" placeholder="vaultwarden-1">
+                </label>
+                <label>Ruta de salud
+                  <input id="instance-health-path" required value="/api/health">
+                </label>
+              </div>
+              <label class="check-row"><input id="instance-include-sends" type="checkbox" checked><span><strong>Incluir Sends</strong></span></label>
+            </details>
+            <label class="protection-toggle"><input id="instance-replication-enabled" type="checkbox"><span><strong>Replicación habilitada</strong><small>Permite enviar y aplicar datos para este servicio.</small></span></label>
+            <div class="form-actions">
+              <button id="validate-instance" class="button secondary" type="button">Validar</button>
+              <button class="button primary" type="submit">Guardar</button>
+            </div>
+            <p id="form-message" class="form-message" aria-live="polite"></p>
+          </form>
+        </article>
+      </section>
+
+      <section class="view" data-view-panel="operacion">
+        <div class="page-heading">
+          <div><p class="eyebrow">OPERACIÓN</p><h1>Supervisión y recuperación</h1><p>Estado del grupo, backups y actividad.</p></div>
+          <span id="cluster-badge" class="badge">—</span>
+        </div>
+        <article class="panel" id="cluster-servers-panel"><div class="panel-heading"><div><h2>Servidores</h2><p>Disponibilidad de los miembros de Vault Guardian.</p></div></div><div id="cluster-servers" class="cluster-grid"><span class="empty">Consultando servidores…</span></div></article>
+        <article class="panel" id="cluster-services-panel"><div class="panel-heading"><div><h2>Vaultwarden</h2><p>Protección, portador y réplicas de cada servicio.</p></div></div><div id="cluster-services" class="cluster-grid"><span class="empty">Consultando servicios…</span></div></article>
+        <article class="panel" id="recovery-panel"><div class="panel-heading"><div><h2>Backups locales</h2><p>Copias creadas antes de aplicar datos recibidos.</p></div><span id="backup-retention" class="badge">—</span></div><div id="backups" class="backup-grid"><span class="empty">Consultando backups…</span></div></article>
+        <article class="panel" id="history-panel">
+          <div class="panel-heading"><div><h2>Actividad</h2><p>Eventos recientes de replicación y recuperación.</p></div><span id="history-badge" class="badge">—</span></div>
+          <div id="history" class="history-list"><span class="empty">Consultando actividad…</span></div>
+          <nav id="history-pagination" class="pagination hidden" aria-label="Páginas de actividad">
+            <button id="history-previous" class="button small secondary" type="button">Anterior</button>
+            <span id="history-page">Página 1 de 1</span>
+            <button id="history-next" class="button small secondary" type="button">Siguiente</button>
+          </nav>
+        </article>
+      </section>
+
+      <section class="view" data-view-panel="seguridad" id="security-panel">
+        <div class="page-heading">
+          <div><p class="eyebrow">SEGURIDAD</p><h1>Cuenta y usuarios</h1><p>Acceso al portal y segundo factor.</p></div>
+          <span id="two-factor-badge" class="badge">—</span>
+        </div>
+        <div class="security-grid">
+          <article class="panel security-card">
+            <div class="panel-heading"><div><h2>Mi cuenta</h2><p id="profile-username">—</p></div></div>
+            <form id="profile-form">
+              <div class="form-grid">
+                <label>Nombre visible
+                  <input id="profile-display-name" required maxlength="120">
+                </label>
+              </div>
+              <details class="advanced">
+                <summary>Cambiar contraseña</summary>
+                <div class="form-grid two">
+                  <label>Contraseña actual
+                    <input id="profile-current-password" type="password" autocomplete="current-password">
+                  </label>
+                  <label>Nueva contraseña
+                    <input id="profile-new-password" type="password" autocomplete="new-password" minlength="12">
+                  </label>
+                </div>
+              </details>
+              <div class="form-actions">
+                <button class="button primary" type="submit">Guardar cuenta</button>
+                <span id="profile-message" class="form-message"></span>
+              </div>
+            </form>
+          </article>
+
+          <article class="panel security-card">
+            <div class="panel-heading"><div><h2>Autenticación de dos factores</h2><p>Compatible con aplicaciones TOTP.</p></div></div>
+            <div class="security-status-field">
+              <span>Estado</span>
+              <div id="two-factor-summary" class="security-status"></div>
+            </div>
+            <button id="two-factor-start" class="button primary" type="button">Configurar 2FA</button>
+            <div id="two-factor-setup" class="two-factor-setup hidden">
+              <img id="two-factor-qr" alt="Código QR para configurar TOTP">
+              <label>Clave manual
+                <input id="two-factor-secret" readonly>
+              </label>
+              <form id="two-factor-confirm-form">
+                <label>Código de verificación
+                  <input id="two-factor-confirm-code" inputmode="numeric" autocomplete="one-time-code" required pattern="[0-9]{6}">
+                </label>
+                <button class="button primary" type="submit">Activar 2FA</button>
+              </form>
+            </div>
+            <form id="two-factor-manage-form" class="hidden">
+              <label>Código 2FA
+                <input id="two-factor-manage-code" inputmode="numeric" autocomplete="one-time-code" required>
+              </label>
+              <div class="form-actions">
+                <button id="recovery-regenerate" class="button secondary" type="button">Nuevos códigos</button>
+                <button id="two-factor-disable" class="button danger" type="button">Desactivar 2FA</button>
+              </div>
+            </form>
+            <p id="two-factor-message" class="form-message"></p>
+          </article>
+        </div>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div><h2>Usuarios</h2><p>Cuentas con acceso administrativo a Vault Guardian.</p></div>
+            <button id="new-user" class="button primary" type="button">Añadir usuario</button>
+          </div>
+          <div id="users-list" class="users-list"><span class="empty">Consultando usuarios…</span></div>
+          <form id="user-form" class="user-form hidden">
+            <div class="form-grid three">
+              <label>Usuario
+                <input id="user-username" required pattern="[A-Za-z0-9][A-Za-z0-9._@+-]{2,63}" autocomplete="off">
+              </label>
+              <label>Nombre visible
+                <input id="user-display-name" required maxlength="120">
+              </label>
+              <label>Contraseña inicial
+                <input id="user-password" type="password" required minlength="12" autocomplete="new-password">
+              </label>
+            </div>
+            <div class="form-actions">
+              <button class="button primary" type="submit">Crear usuario</button>
+              <button id="cancel-user" class="button secondary" type="button">Cancelar</button>
+              <span id="user-message" class="form-message"></span>
+            </div>
+          </form>
+        </article>
+      </section>
+
+    </main>
+
+    <footer><span>Vault Guardian · <span id="footer-node">—</span></span><span id="footer-time">—</span></footer>
+  </div>
+
+  <dialog id="app-dialog" class="dialogo" aria-labelledby="dialog-title">
+    <form method="dialog" class="dialogo-contenido">
+      <header><h2 id="dialog-title">Confirmar acción</h2><button type="submit" value="cancelar" class="cerrar-dialogo" aria-label="Cerrar">×</button></header>
+      <div id="dialog-body" class="dialogo-cuerpo"></div>
+      <label id="dialog-acceptance" class="aceptacion-dialogo hidden">
+        <input type="checkbox" id="dialog-checkbox"><span id="dialog-acceptance-text"></span>
+      </label>
+      <footer>
+        <button type="submit" value="cancelar" class="button secondary">Cancelar</button>
+        <button type="submit" value="confirmar" id="dialog-confirm" class="button">Confirmar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="codes-dialog" class="dialogo codes-dialog" aria-labelledby="codes-title">
+    <form method="dialog" class="dialogo-contenido">
+      <header><h2 id="codes-title">Códigos de recuperación</h2><button type="submit" class="cerrar-dialogo" aria-label="Cerrar">×</button></header>
+      <p>Guarda estos códigos en un lugar seguro. Cada código sólo puede utilizarse una vez.</p>
+      <pre id="recovery-codes"></pre>
+      <footer><button id="copy-recovery-codes" class="button secondary" type="button">Copiar</button><button class="button primary" type="submit">He guardado los códigos</button></footer>
+    </form>
+  </dialog>
+
+  <script src="/app.js"></script>
+</body>
+</html>

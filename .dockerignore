@@ -1,0 +1,13 @@
+.git
+.github/*
+!.github/workflows/
+.github/workflows/*
+!.github/workflows/release.yml
+.env
+.secrets
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+local-data
+*.vgb
+*.tar.gz

@@ -1,0 +1,13 @@
+.secrets/
+.env
+config/instances.local.json
+*.py[cod]
+__pycache__/
+.pytest_cache/
+.venv/
+dist/
+build/
+*.tar.gz
+*.vgb
+*.new
+local-data/

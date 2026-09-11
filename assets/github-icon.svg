@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Vault Guardian</title>
+  <desc id="desc">Escudo con puerta de bóveda y cerradura</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071015"/><stop offset="1" stop-color="#0d2a2c"/></linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#14b8a6"/><stop offset="1" stop-color="#12cddd"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M256 70c55 41 111 57 166 61v112c0 99-56 167-166 207C146 410 90 342 90 243V131c55-4 111-20 166-61z" fill="#0a191d" stroke="url(#accent)" stroke-width="18" stroke-linejoin="round"/>
+  <circle cx="256" cy="259" r="112" fill="#071015" stroke="#8be8dc" stroke-width="16"/>
+  <circle cx="256" cy="259" r="72" fill="none" stroke="#14b8a6" stroke-width="12" stroke-dasharray="22 14"/>
+  <path d="M256 147v32m112 80h-32m-80 112v-32m-112-80h32" stroke="#ffcf5a" stroke-width="14" stroke-linecap="round"/>
+  <path d="M256 226a31 31 0 0 1 18 56v35h-36v-35a31 31 0 0 1 18-56z" fill="#eafaff"/>
+</svg>

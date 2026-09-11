@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!-- Plantilla pública genérica. No contiene nodos, direcciones ni secretos del autor. -->
+<Container version="2">
+  <Name>Vault-Guardian</Name>
+  <Repository>ghcr.io/ezr43l/vault-guardian-s:1.0.17</Repository>
+  <Registry>https://github.com/Ezr43l/vault-guardian-s/pkgs/container/vault-guardian-s</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/Ezr43l/vault-guardian-s/issues</Support>
+  <Project>https://github.com/Ezr43l/vault-guardian-s</Project>
+  <Overview>Portal completo para inventariar, aprovisionar, reconciliar y replicar Vaultwarden. Toda la aplicación se ejecuta en este único contenedor, que monta el socket Docker local y una raíz autorizada de datos para administrar las instancias declaradas sin contenedores auxiliares. El alta inicial pide la cuenta y si el portal usará HTTPS o HTTP limitado a una red aislada. No incluye datos de una instalación concreta.</Overview>
+  <Category>Tools:Management Tools:</Category>
+  <WebUI>http://[IP]:[PORT:6062]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/Ezr43l/vault-guardian-s/main/unraid/my-Vault-Guardian.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/Ezr43l/vault-guardian-s/main/docker/guardian/web/icono.png</Icon>
+  <ExtraParams>--restart=unless-stopped --user=0:0 --add-host=host.docker.internal:host-gateway --read-only --tmpfs /tmp:size=2g,mode=1777 --cap-drop=ALL --security-opt=no-new-privileges:true --pids-limit=128 --label=com.vault-guardian.role=app</ExtraParams>
+  <PostArgs/>
+
+  <Config Name="Puerto del panel" Target="6062" Default="6062" Mode="tcp" Description="Puerto HTTP local del portal. Publícalo mediante un proxy HTTPS o limita el acceso con firewall." Type="Port" Display="always" Required="true" Mask="false">6062</Config>
+  <Config Name="Datos de Vault Guardian" Target="/state" Default="/mnt/user/appdata/vault-guardian" Mode="rw" Description="Único directorio persistente. La aplicación guarda aquí configuración, cuentas, historial, backups y secretos locales." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/vault-guardian</Config>
+  <Config Name="Raíz de datos Vaultwarden" Target="/instances" Default="/mnt/user/appdata" Mode="rw" Description="Carpeta host que contiene los volúmenes /data de Vaultwarden. Es el único ajuste funcional que Docker debe fijar antes de arrancar; en Unraid normalmente es /mnt/user/appdata." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata</Config>
+  <Config Name="Socket de Docker" Target="/var/run/docker.sock" Default="/var/run/docker.sock" Mode="rw" Description="Necesario para descubrir y administrar exclusivamente las instancias Vaultwarden declaradas desde el portal." Type="Path" Display="always" Required="true" Mask="false">/var/run/docker.sock</Config>
+</Container>

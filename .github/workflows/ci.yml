@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate version contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d ' \r\n' < VERSION)"
+          grep -F "VG_BUILD_VERSION=$version" .env.example
+          grep -F "ghcr.io/ezr43l/vault-guardian-s:$version" compose.yaml
+          grep -F "ghcr.io/ezr43l/vault-guardian-s:$version" unraid/my-Vault-Guardian.xml
+          grep -F "VG_LICENSE_SPDX=Apache-2.0" .env.example
+          grep -F "cryptography==50.0.1" docker/guardian/requirements.txt
+          grep -F "qrcode==8.2" docker/guardian/requirements.txt
+          grep -F "VG_DOCKER_SOCKET: /var/run/docker.sock" compose.yaml
+          test -f LICENSE
+
+      - name: Validate Compose and Unraid XML
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose --env-file .env.example config --quiet
+          python -c "import xml.etree.ElementTree as E; E.parse('unraid/my-Vault-Guardian.xml')"
+          test "$(grep -c '<Config ' unraid/my-Vault-Guardian.xml)" = 4
+          python -m json.tool config/instances.example.json >/dev/null
+          test "$(grep -Fc 'Target="/var/run/docker.sock"' unraid/my-Vault-Guardian.xml)" = 1
+          test "$(grep -c '/var/run/docker.sock:/var/run/docker.sock' compose.yaml)" = 1
+          test ! -e unraid/my-Vault-Guardian-Docker-Control.xml
+          bash -n build-image.sh docker/guardian/entrypoint.sh
+          shellcheck --severity=warning build-image.sh docker/guardian/entrypoint.sh
+          if test -f deploy-guardian.sh; then
+            bash -n deploy-guardian.sh
+            shellcheck --severity=warning deploy-guardian.sh
+          fi
+          if grep -R -E '__[A-Z0-9_]+__' unraid; then
+            echo "La plantilla contiene marcadores sin resolver" >&2
+            exit 1
+          fi
+          if grep -R -E '10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.' \
+              unraid .env.example compose.yaml README.md docs/installation.md \
+              docs/template-guide.md docker/guardian/web; then
+            echo "Hay direcciones privadas incrustadas en artefactos públicos" >&2
+            exit 1
+          fi
+
+      - name: Audit Python dependencies and source
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm -v "$PWD:/src:ro" -w /src \
+            python:3.12-alpine3.23@sha256:167bc85084c9df34480efc26b4528fb68feaa8a79183b5658952137025b6f061 sh -c '
+            pip install --quiet pip-audit==2.10.1 bandit==1.9.4 &&
+            pip-audit --requirement docker/guardian/requirements.txt --progress-spinner off &&
+            bandit -r docker/guardian/app -q
+          '
+
+      - name: Build image and run embedded tests
+        shell: bash
+        run: |
+          version="$(tr -d ' \r\n' < VERSION)"
+          docker build --pull --tag vault-guardian:ci \
+            --build-arg "VERSION=$version" \
+            --build-arg "LICENSE=Apache-2.0" \
+            --file docker/guardian/Dockerfile .
+
+      - name: Check OCI version and architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d ' \r\n' < VERSION)"
+          test "$(docker image inspect vault-guardian:ci --format '{{index .Config.Labels "org.opencontainers.image.version"}}')" = "$version"
+          test "$(docker image inspect vault-guardian:ci --format '{{index .Config.Labels "org.opencontainers.image.licenses"}}')" = "Apache-2.0"
+          test "$(docker image inspect vault-guardian:ci --format '{{.Config.User}}')" = "0:0"
+          docker run --rm --entrypoint test vault-guardian:ci -f /app/LICENSE
+          docker run --rm --entrypoint test vault-guardian:ci -f /web/panel.html
+          docker run --rm --entrypoint python vault-guardian:ci -c 'import docker_api, security, server'
+
+      - name: Reject all critical or high vulnerabilities
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969 \
+            image --skip-version-check --scanners vuln \
+            --severity CRITICAL,HIGH --exit-code 1 vault-guardian:ci
+
+      - name: Exercise the single-container Docker integration
+        shell: pwsh
+        run: ./docker/guardian/tests/secure_single_container_lab.ps1 -Image vault-guardian:ci
+
+      - name: Secret scan of the exportable tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm -v "$PWD:/repo" -w /repo \
+            zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
+            dir . --no-banner --redact --exit-code 1
