@@ -2,7 +2,7 @@
 <!-- Plantilla pública genérica. No contiene nodos, direcciones ni secretos del autor. -->
 <Container version="2">
   <Name>Vault-Guardian</Name>
-  <Repository>ghcr.io/ezr43l/vault-guardian-s:1.0.17</Repository>
+  <Repository>ghcr.io/ezr43l/vault-guardian-s:1.0.18</Repository>
   <Registry>https://github.com/Ezr43l/vault-guardian-s/pkgs/container/vault-guardian-s</Registry>
   <Network>bridge</Network>
   <MyIP/>

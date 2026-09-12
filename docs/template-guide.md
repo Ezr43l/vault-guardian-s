@@ -1,7 +1,7 @@
 # Plantilla Unraid y primer arranque
 
-La plantilla pública de Vault Guardian `1.0.17` descarga
-`ghcr.io/ezr43l/vault-guardian-s:1.0.17` y crea exactamente un contenedor. No
+La plantilla pública de Vault Guardian `1.0.18` descarga
+`ghcr.io/ezr43l/vault-guardian-s:1.0.18` y crea exactamente un contenedor. No
 compila la aplicación ni contiene nodos, direcciones, credenciales o datos del
 autor.
 

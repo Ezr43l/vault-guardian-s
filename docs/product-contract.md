@@ -1,6 +1,6 @@
 # Contrato de producto de Vault Guardian
 
-Estado: activo para 1.0.17.
+Estado: activo para 1.0.18.
 
 ## Propósito
 
@@ -24,7 +24,7 @@ Un proceso HTTP activo no equivale a un servicio protegido.
 - **Integración:** consume la API mediante token Bearer.
 - **Guardian par:** usa el secreto interno para configuración y datos.
 
-En 1.0.17 todos los usuarios del portal tienen permisos administrativos. Las credenciales
+En 1.0.18 todos los usuarios del portal tienen permisos administrativos. Las credenciales
 de Vaultwarden no autentican Vault Guardian.
 
 ## Navegación

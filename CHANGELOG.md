@@ -1,5 +1,13 @@
 # Cambios
 
+## [v1.0.18] - 2026-09-12 · CORRECCIÓN
+
+### Corregido
+
+- El laboratorio de publicación amplía su ventana de observación para que la
+  comprobación ARM64 ejecutada mediante QEMU no confunda un arranque lento con un
+  contenedor no saludable. La configuración de salud de la imagen no cambia.
+
 ## [v1.0.17] - 2026-09-11 · CORRECCIÓN
 
 ### Corregido
