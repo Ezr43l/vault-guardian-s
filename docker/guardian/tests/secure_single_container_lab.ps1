@@ -33,7 +33,10 @@ try {
     Invoke-Docker -DockerArguments $runArguments | Out-Null
 
     $healthy = $false
-    foreach ($attempt in 1..30) {
+    # La primera comprobación puede tardar más cuando una imagen ARM64 se valida
+    # mediante QEMU en un servidor AMD64. El contenedor mantiene los mismos límites
+    # de salud; el laboratorio sólo amplía su ventana de observación.
+    foreach ($attempt in 1..90) {
         $status = docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{end}}' $name
         if ($status -eq "healthy") {
             $healthy = $true
