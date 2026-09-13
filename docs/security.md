@@ -82,7 +82,7 @@ sólo se muestran una vez; Guardian almacena únicamente sus hashes.
 
 ## Usuarios
 
-La versión 1.0.18 dispone de un único rol administrativo.
+La versión 1.0.19 dispone de un único rol administrativo.
 
 - Los nombres son únicos sin distinguir mayúsculas.
 - Debe quedar al menos un usuario habilitado.
@@ -90,7 +90,7 @@ La versión 1.0.18 dispone de un único rol administrativo.
 - El usuario actual cambia sus credenciales desde **Mi cuenta**.
 - Cada mutación incrementa la revisión distribuida.
 
-Los roles diferenciados quedan fuera de 1.0.18.
+Los roles diferenciados quedan fuera de 1.0.19.
 
 ## Distribución entre Guardian
 

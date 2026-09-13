@@ -164,6 +164,9 @@ footer {
   color: var(--tinta-tenue);
   font: 11px var(--mono);
 }
+footer a, .login-support { color: var(--acento); text-decoration: none; }
+footer a:hover, .login-support:hover { color: var(--tinta); }
+.login-support { display: block; margin-top: 15px; font: 11px var(--mono); text-align: center; }
 
 /* Controles */
 .button {

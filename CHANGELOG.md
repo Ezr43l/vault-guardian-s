@@ -1,5 +1,13 @@
 # Cambios
 
+## [v1.0.19] - 2026-09-13 · MEJORA
+
+### Añadido
+
+- Añadido en el acceso y en el pie del panel el enlace de soporte a la comunidad de
+  Discord de Unraides.
+- La plantilla pública sigue el canal `stable`.
+
 ## [v1.0.18] - 2026-09-12 · CORRECCIÓN
 
 ### Corregido

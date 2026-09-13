@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/Ezr43l/vault-guardian-s/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Ezr43l/vault-guardian-s/actions/workflows/ci.yml/badge.svg"></a>
-  <img alt="Versión 1.0.18" src="https://img.shields.io/badge/versión-1.0.18-14b8a6">
+  <img alt="Versión 1.0.19" src="https://img.shields.io/badge/versión-1.0.19-14b8a6">
   <img alt="Un contenedor" src="https://img.shields.io/badge/despliegue-1%20contenedor-55df9a">
   <img alt="Linux AMD64 y ARM64" src="https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-12cddd">
   <a href="LICENSE"><img alt="Licencia Apache 2.0" src="https://img.shields.io/badge/licencia-Apache--2.0-7d91a3"></a>
@@ -12,9 +12,9 @@
 
 <p align="center"><strong>Inventario, aprovisionamiento y réplica de Vaultwarden desde un único portal.</strong></p>
 
-Vault Guardian 1.0.18 administra, aprovisiona, reconcilia y replica varias instancias
+Vault Guardian 1.0.19 administra, aprovisiona, reconcilia y replica varias instancias
 Vaultwarden entre varios servidores. La autoridad de cada IP flotante permanece en
-Keepalived; Guardian sólo toma como origen al único portador confirmado. `1.0.18`
+Keepalived; Guardian sólo toma como origen al único portador confirmado. `1.0.19`
 es la única versión publicada en este repositorio.
 
 Este repositorio compartido no contiene nombres, IP, rutas, credenciales ni inventarios de
@@ -26,7 +26,7 @@ una instalación concreta. El primer arranque comienza sin nodos ni Vaultwarden 
 **[Operación](docs/operations.md)** ·
 **[Seguridad](docs/security.md)**
 
-## Funciones conservadas en 1.0.18
+## Funciones conservadas en 1.0.19
 
 - Portal completo con primera cuenta elegida por el usuario, sesiones, CSRF, usuarios y
   segundo factor TOTP.
@@ -67,7 +67,7 @@ flowchart LR
 ## ¿La plantilla construye la imagen?
 
 No. Una plantilla Unraid describe cómo ejecutar una imagen, pero no compila el proyecto.
-Las plantillas públicas apuntan a `ghcr.io/ezr43l/vault-guardian-s:1.0.18`. Para desarrollo,
+Las plantillas públicas apuntan a `ghcr.io/ezr43l/vault-guardian-s:1.0.19`. Para desarrollo,
 `docker compose build` o `./build-image.sh` construyen la misma fuente localmente. El script
 sólo construye en local; la publicación se realiza desde el workflow de release del repositorio
 público.
@@ -83,7 +83,7 @@ público.
 6. Abre el portal, crea la primera cuenta y completa grupo, Keepalived e inventario desde
    la aplicación. El secreto local se genera dentro de `/state`.
 
-Para probar el código local, sustituye `VG_IMAGE` por `vault-guardian:1.0.18` y ejecuta
+Para probar el código local, sustituye `VG_IMAGE` por `vault-guardian:1.0.19` y ejecuta
 `docker compose build` antes de arrancar. La guía reproducible está en
 [docs/installation.md](docs/installation.md). No cambies a
 `active` hasta completar [docs/release-checklist.md](docs/release-checklist.md).

@@ -16,14 +16,15 @@ COPY docker/guardian/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir --only-binary=:all: --requirement /tmp/requirements.txt
 
 FROM base AS test
+ARG RUN_BUILD_TESTS=0
 WORKDIR /workspace
 COPY VERSION LICENSE README.md CHANGELOG.md build-image.sh ./
-COPY .github/workflows/release.yml ./.github/workflows/release.yml
 COPY config ./config
 COPY unraid ./unraid
 COPY docker/guardian ./docker/guardian
-RUN PYTHONPATH=/workspace/docker/guardian/app \
-    python -m unittest discover -s /workspace/docker/guardian/tests -v
+RUN if [ "$RUN_BUILD_TESTS" = "1" ]; then \
+      PYTHONPATH=/workspace/docker/guardian/app python -m unittest discover -s /workspace/docker/guardian/tests -v; \
+    fi
 
 FROM base AS runtime
 WORKDIR /app

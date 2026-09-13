@@ -138,7 +138,7 @@ GET /api/version
 Ejemplo:
 
 ~~~json
-{"estado":"ok","nodo":"nodo-1","modo":"observe","configurado":false,"version":"1.0.18"}
+{"estado":"ok","nodo":"nodo-1","modo":"observe","configurado":false,"version":"1.0.19"}
 ~~~
 
 La salud de Guardian no sustituye la salud de Vaultwarden.

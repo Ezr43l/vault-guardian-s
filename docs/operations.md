@@ -25,7 +25,7 @@ Cuando `/state/auth.json` no contiene usuarios, el portal permite crear la prime
 con las credenciales elegidas por el operador. Esta operación sólo se admite una vez y no
 usa valores de la plantilla. Después, todas las cuentas se gestionan en **Seguridad**.
 
-- Cada usuario tiene acceso administrativo completo en 1.0.18.
+- Cada usuario tiene acceso administrativo completo en 1.0.19.
 - Deshabilitar o cambiar la contraseña invalida sus sesiones.
 - No se puede eliminar ni deshabilitar el último usuario.
 - La cuenta de la sesión actual modifica sus credenciales desde **Mi cuenta**.
@@ -174,7 +174,7 @@ pero se elimina cuando el grupo queda validado.
 
 Verificaciones mínimas:
 
-- versión `1.0.18`;
+- versión `1.0.19`;
 - login y 2FA;
 - mismo número de usuarios y revisión en los miembros;
 - API Bearer, si está configurada;

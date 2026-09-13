@@ -1,4 +1,4 @@
-# Instalación reproducible de Vault Guardian 1.0.18
+# Instalación reproducible de Vault Guardian 1.0.19
 
 Vault Guardian se instala en servidores Docker Linux `amd64` o `arm64` como una
 sola aplicación y un único contenedor permanente. La plantilla descarga una
@@ -88,7 +88,7 @@ conectividad con Keepalived antes de continuar con el siguiente.
 ## Compilar localmente
 
 ```bash
-VG_IMAGE=vault-guardian:1.0.18 ./build-image.sh
+VG_IMAGE=vault-guardian:1.0.19 ./build-image.sh
 ```
 
 El script sólo construye y prueba localmente. La publicación se realiza desde el

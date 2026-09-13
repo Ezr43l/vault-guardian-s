@@ -1,11 +1,11 @@
-# Checklist pública de Vault Guardian 1.0.18
+# Checklist pública de Vault Guardian 1.0.19
 
 Una etiqueta pública sólo se crea cuando todas las puertas aplicables tienen evidencia.
 
 ## Código y suministro
 
-- [ ] `VERSION`, plantilla, Compose, imagen y tag coinciden en `1.0.18`.
-- [ ] GHCR publica exclusivamente `:1.0.18`; no se crean ni sobrescriben alias
+- [ ] `VERSION`, plantilla, Compose, imagen y tag coinciden en `1.0.19`.
+- [ ] GHCR publica exclusivamente `:1.0.19`; no se crean ni sobrescriben alias
   `:latest`, `:1` o `:1.0`.
 - [ ] Apache-2.0 está presente y los metadatos OCI declaran la misma licencia.
 - [ ] El snapshot público no contiene historial privado, `.env`, secretos, inventarios ni
@@ -28,7 +28,7 @@ Una etiqueta pública sólo se crea cuando todas las puertas aplicables tienen e
 
 - [ ] Pasan todas las pruebas de portal, login, usuarios, TOTP, CSRF y UI.
 - [ ] Pasan snapshot, linaje, antirreplay, conflicto, backup, restore y rollback.
-- [ ] Pasan provisioning y reconciliación sin perder las funciones de 1.0.18.
+- [ ] Pasan provisioning y reconciliación sin perder las funciones de 1.0.19.
 - [ ] El laboratorio demuestra un único contenedor y un único montaje de `docker.sock`.
 - [ ] La integración Docker rechaza contenedores, imágenes, rutas, privilegios y archivos ajenos.
 - [ ] Primera cuenta y asistente funcionan con un inventario vacío.
@@ -41,7 +41,7 @@ Una etiqueta pública sólo se crea cuando todas las puertas aplicables tienen e
 
 ## Entorno externo
 
-- [ ] Pull anónimo de `ghcr.io/ezr43l/vault-guardian-s:1.0.18` con un Docker config vacío.
+- [ ] Pull anónimo de `ghcr.io/ezr43l/vault-guardian-s:1.0.19` con un Docker config vacío.
 - [ ] La URL raw de la única plantilla responde sin autenticación.
 - [ ] Instalación limpia desde Compose y desde la única plantilla Unraid.
 - [ ] HTTPS/CA privada, backup y restore reales.
@@ -49,6 +49,6 @@ Una etiqueta pública sólo se crea cuando todas las puertas aplicables tienen e
 - [ ] VRRP/ARP y firewall comprobados en hosts físicos; no se simula split-brain destructivo
   sobre un servicio de producción.
 
-La línea privada continúa en `1.0.18` mientras se prepara la exportación. Los tags históricos
-no se mueven; el repositorio público recibe `v1.0.18` una vez superadas estas
+La línea privada continúa en `1.0.19` mientras se prepara la exportación. Los tags históricos
+no se mueven; el repositorio público recibe `v1.0.19` una vez superadas estas
 puertas.
