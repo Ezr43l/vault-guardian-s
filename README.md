@@ -3,7 +3,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Ezr43l/vault-guardian-s/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Ezr43l/vault-guardian-s/actions/workflows/ci.yml/badge.svg"></a>
   <img alt="Versión 1.0.19" src="https://img.shields.io/badge/versión-1.0.19-14b8a6">
   <img alt="Un contenedor" src="https://img.shields.io/badge/despliegue-1%20contenedor-55df9a">
   <img alt="Linux AMD64 y ARM64" src="https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-12cddd">
@@ -15,7 +14,7 @@
 Vault Guardian 1.0.19 administra, aprovisiona, reconcilia y replica varias instancias
 Vaultwarden entre varios servidores. La autoridad de cada IP flotante permanece en
 Keepalived; Guardian sólo toma como origen al único portador confirmado. `1.0.19`
-es la única versión publicada en este repositorio.
+es la versión estable actual de este repositorio.
 
 Este repositorio compartido no contiene nombres, IP, rutas, credenciales ni inventarios de
 una instalación concreta. El primer arranque comienza sin nodos ni Vaultwarden precargados.
@@ -67,10 +66,10 @@ flowchart LR
 ## ¿La plantilla construye la imagen?
 
 No. Una plantilla Unraid describe cómo ejecutar una imagen, pero no compila el proyecto.
-Las plantillas públicas apuntan a `ghcr.io/ezr43l/vault-guardian-s:1.0.19`. Para desarrollo,
-`docker compose build` o `./build-image.sh` construyen la misma fuente localmente. El script
-sólo construye en local; la publicación se realiza desde el workflow de release del repositorio
-público.
+Las plantillas públicas apuntan a `ghcr.io/ezr43l/vault-guardian-s:stable`
+(versión actual `1.0.19`). Para desarrollo, `docker compose build` o
+`./build-image.sh` construyen la fuente localmente. Nosotros subimos las imágenes
+terminadas a GHCR y el código a GitHub; GitHub no construye ni prueba nada.
 
 ## Instalación rápida con Compose
 
@@ -125,5 +124,14 @@ la configuración efectiva.
 - [Contrato de producto](docs/product-contract.md)
 - [Checklist de release](docs/release-checklist.md)
 
-Licencia: [Apache-2.0](LICENSE). Las imágenes y releases públicas se generan únicamente desde
-`Ezr43l/vault-guardian-s`; el desarrollo puede continuar en un origen privado separado.
+Licencia: [Apache-2.0](LICENSE). El desarrollo continúa en el repositorio privado;
+`Ezr43l/vault-guardian-s` recibe el código y los archivos públicos preparados.
+
+## Soporte
+
+El soporte se presta exclusivamente en la comunidad de Discord de Unraides:
+
+**[Entrar en Unraides](https://discord.gg/8MAT6ZGJTW)**
+
+No se atienden solicitudes de soporte en GitHub. Al pedir ayuda, indica la
+versión de la aplicación y el error, sin compartir contraseñas ni tokens.

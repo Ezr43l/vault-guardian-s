@@ -8,7 +8,7 @@
   <MyIP/>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
-  <Support>https://github.com/Ezr43l/vault-guardian-s/issues</Support>
+  <Support>https://discord.gg/8MAT6ZGJTW</Support>
   <Project>https://github.com/Ezr43l/vault-guardian-s</Project>
   <Overview>Portal completo para inventariar, aprovisionar, reconciliar y replicar Vaultwarden. Toda la aplicación se ejecuta en este único contenedor, que monta el socket Docker local y una raíz autorizada de datos para administrar las instancias declaradas sin contenedores auxiliares. El alta inicial pide la cuenta y si el portal usará HTTPS o HTTP limitado a una red aislada. No incluye datos de una instalación concreta.</Overview>
   <Category>Tools:Management Tools:</Category>

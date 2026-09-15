@@ -91,5 +91,6 @@ conectividad con Keepalived antes de continuar con el siguiente.
 VG_IMAGE=vault-guardian:1.0.19 ./build-image.sh
 ```
 
-El script sólo construye y prueba localmente. La publicación se realiza desde el
-workflow del futuro repositorio público y usa un tag de versión inmutable.
+El script construye localmente. Las imágenes terminadas se suben directamente a
+GHCR y el código se publica en GitHub; GitHub no ejecuta construcciones ni pruebas.
+La plantilla pública usa `ghcr.io/ezr43l/vault-guardian-s:stable`.
