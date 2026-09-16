@@ -1,137 +1,113 @@
 <p align="center">
-  <img src="assets/github-banner.svg" alt="Vault Guardian — Vaultwarden, aprovisionamiento y réplica" width="100%">
+  <img src="assets/github-banner.svg" alt="Vault Guardian — gestión y réplica de Vaultwarden" width="100%">
 </p>
 
 <p align="center">
-  <img alt="Versión 1.0.19" src="https://img.shields.io/badge/versión-1.0.19-14b8a6">
   <img alt="Un contenedor" src="https://img.shields.io/badge/despliegue-1%20contenedor-55df9a">
   <img alt="Linux AMD64 y ARM64" src="https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-12cddd">
   <a href="LICENSE"><img alt="Licencia Apache 2.0" src="https://img.shields.io/badge/licencia-Apache--2.0-7d91a3"></a>
 </p>
 
-<p align="center"><strong>Inventario, aprovisionamiento y réplica de Vaultwarden desde un único portal.</strong></p>
+# Vault Guardian
 
-Vault Guardian 1.0.19 administra, aprovisiona, reconcilia y replica varias instancias
-Vaultwarden entre varios servidores. La autoridad de cada IP flotante permanece en
-Keepalived; Guardian sólo toma como origen al único portador confirmado. `1.0.19`
-es la versión estable actual de este repositorio.
+Vault Guardian administra varias instancias de Vaultwarden desde un único portal. Permite
+inventariarlas, crear nuevas réplicas, comprobar su estado y mantener sus datos alineados
+entre varios servidores.
 
-Este repositorio compartido no contiene nombres, IP, rutas, credenciales ni inventarios de
-una instalación concreta. El primer arranque comienza sin nodos ni Vaultwarden precargados.
+Se distribuye como un único contenedor para Linux `amd64` y `arm64`.
 
-**[Instalación](docs/installation.md)** ·
-**[Arquitectura](docs/architecture.md)** ·
-**[API](docs/api.md)** ·
-**[Operación](docs/operations.md)** ·
-**[Seguridad](docs/security.md)**
+## Funciones principales
 
-## Funciones conservadas en 1.0.19
+- Descubrimiento e inventario de instancias Vaultwarden.
+- Aprovisionamiento de nuevas réplicas.
+- Copias SQLite consistentes y respaldos antes de cada sustitución.
+- Transporte cifrado entre nodos.
+- Reconciliación de nodos incorporados posteriormente.
+- Integración con Keepalived para localizar el nodo activo.
+- Usuarios, sesiones y segundo factor TOTP.
+- Una credencial API independiente por aplicación consumidora.
 
-- Portal completo con primera cuenta elegida por el usuario, sesiones, CSRF, usuarios y
-  segundo factor TOTP.
-- Descubrimiento de contenedores oficiales Vaultwarden y alta automática fijada por digest.
-- Preflight de todos los destinos antes de crear contenedores o reclamar una IP.
-- Snapshot SQLite consistente, transporte cifrado, backups, linaje y antirreplay.
-- Reconciliación de nodos añadidos después y rollback automático. El portador único
-  confirmado sustituye divergencias pasivas después de conservar un backup local.
-- API `/api/v1` con aplicaciones identificadas y un Bearer independiente y revocable para
-  cada consumidor.
-- Imágenes para servidores Docker Linux `amd64` y `arm64`, publicadas en GHCR por versión.
+## Requisitos
 
-## Frontera Docker
+- Docker Engine en cada servidor.
+- Socket Docker local.
+- Una raíz del host que contenga los datos de las instancias Vaultwarden.
+- Un directorio persistente propio para Vault Guardian.
+- Conectividad entre los nodos que formarán el grupo.
 
-Vault Guardian se instala como un único contenedor. Ese contenedor monta el socket Docker
-local y limita las operaciones de la aplicación a:
+El acceso al socket Docker equivale a un acceso elevado al servidor. Limita el acceso al
+portal y no publiques el socket por TCP.
 
-- contenedores Vaultwarden oficiales;
-- imágenes fijadas por digest;
-- nombres, puertos, labels, red y rutas de nuevas réplicas;
-- correspondencia validada entre cada `/data` y la raíz host montada en `/instances`;
-- `inspect`, `start`, `stop` y aprovisionamiento según el tipo de recurso.
+## Instalación con Docker
 
-El socket concede control equivalente al del daemon Docker: limita el acceso al panel y al
-host, y no expongas el socket por TCP. El contenedor conserva la raíz de sólo lectura,
-capabilities eliminadas y `no-new-privileges`.
+Ajusta `/srv/vaultwarden` a la raíz que contiene los directorios de datos de tus
+instancias:
 
-```mermaid
-flowchart LR
-    U[Operador] -->|HTTPS| G[Vault Guardian]
-    G -->|API local validada| S[docker.sock]
-    G -->|snapshot cifrado| P[Guardian pares]
-    G -->|Bearer| K[floating-ip]
-    K --> V[IP flotante]
-    V --> W[Vaultwarden activo]
+```bash
+sudo mkdir -p /srv/vault-guardian
+sudo chmod 700 /srv/vault-guardian
+
+sudo docker run -d \
+  --name vault-guardian \
+  --restart unless-stopped \
+  --user 0:0 \
+  --read-only \
+  --cap-drop ALL \
+  --security-opt no-new-privileges \
+  --pids-limit 128 \
+  --tmpfs /tmp:size=2g,mode=1777 \
+  --add-host host.docker.internal:host-gateway \
+  -p 6062:6062 \
+  -v /srv/vault-guardian:/state \
+  -v /srv/vaultwarden:/instances \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  ghcr.io/ezr43l/vault-guardian-s:stable
 ```
 
-## ¿La plantilla construye la imagen?
+Abre `http://SERVIDOR:6062`, crea la primera cuenta y completa la configuración del
+grupo, Keepalived y las instancias.
 
-No. Una plantilla Unraid describe cómo ejecutar una imagen, pero no compila el proyecto.
-Las plantillas públicas apuntan a `ghcr.io/ezr43l/vault-guardian-s:stable`
-(versión actual `1.0.19`). Para desarrollo, `docker compose build` o
-`./build-image.sh` construyen la fuente localmente. Nosotros subimos las imágenes
-terminadas a GHCR y el código a GitHub; GitHub no construye ni prueba nada.
+También puedes usar [Docker Compose](compose.yaml), la
+[guía de instalación](docs/installation.md) o la
+[plantilla para Unraid](unraid/my-Vault-Guardian.xml).
 
-## Instalación rápida con Compose
+## Datos de nuevas réplicas
 
-1. Copia `.env.example` a `.env`.
-2. Crea `local-data/state`, accesible por `root` y con modo `0700`.
-3. Configura `VG_DATA_PATH` con la raíz host que contiene los bind mounts `/data`
-   de Vaultwarden. Docker la monta en `/instances`; no puede cambiarse desde el portal.
-4. Revisa el bind address; la política HTTPS se elige al crear la primera cuenta.
-5. Ejecuta `docker compose config`, `docker compose pull` y `docker compose up -d`.
-6. Abre el portal, crea la primera cuenta y completa grupo, Keepalived e inventario desde
-   la aplicación. El secreto local se genera dentro de `/state`.
+Al crear una réplica, indica el directorio que utilizará Vaultwarden. Si la ruta ya existe,
+Guardian la utiliza. Si no existe dentro de la raíz autorizada, la crea antes de desplegar
+la instancia. Esta ruta sólo es obligatoria cuando se crea o se incorpora una réplica.
 
-Para probar el código local, sustituye `VG_IMAGE` por `vault-guardian:1.0.19` y ejecuta
-`docker compose build` antes de arrancar. La guía reproducible está en
-[docs/installation.md](docs/installation.md). No cambies a
-`active` hasta completar [docs/release-checklist.md](docs/release-checklist.md).
+## Grupo y sincronización
 
-## Instalación en Unraid
+Configura primero un nodo sin código de incorporación. Utiliza después el código generado
+para unir los demás. Vault Guardian sólo acepta como origen al portador de la dirección
+flotante confirmado por Keepalived.
 
-1. Crea el único directorio persistente `/mnt/user/appdata/vault-guardian`, con modo `0700`
-   y propietario `root`.
-2. Instala únicamente `my-Vault-Guardian.xml`; sólo pide puerto, estado, raíz de datos
-   Vaultwarden y socket Docker.
-3. Elige HTTPS o HTTP aislado y completa la primera cuenta, el grupo y el token de Keepalived desde el portal.
-4. Verifica que existe exactamente un contenedor `Vault-Guardian` y un único montaje de
-   `/var/run/docker.sock`.
+Antes de sustituir datos en un nodo pasivo crea un respaldo local y valida el paquete
+recibido. Si la autoridad no puede determinarse, la sincronización queda bloqueada.
 
-## Credenciales distintas
+## API
 
-- `VG_REPLICATION_TOKEN[_FILE]`: autentica pares, cifra paquetes y deriva claves de sesión.
-- `VG_FLOATING_API_TOKEN[_FILE]`: autoriza consultas y reclamaciones en floating-ip.
-- `VG_API_TOKEN[_FILE]`: compatibilidad de migración para el antiguo token único; el portal
-  lo incorpora como «Integración anterior sin identificar» hasta que el usuario lo renombre.
+Cada integración dispone de nombre y credencial propios. Desde el portal puedes crear,
+renovar o revocar cada acceso por separado.
 
-En una instalación nueva, el secreto de replicación se genera en el volumen persistente y
-el token de Keepalived y las aplicaciones consumidoras de la API se administran desde el
-portal autenticado. Cada aplicación dispone de una credencial propia, visible y revocable. La
-duración de sesión, los límites del historial, el acceso HTTP/HTTPS y una CA privada opcional
-también se cambian dentro de la aplicación. Los parámetros `*_FILE` se conservan sólo como
-compatibilidad de migración; cuando el usuario guarda un valor en el portal, éste pasa a ser
-la configuración efectiva.
+Referencia:
 
-## Documentación
-
-- [Instalación](docs/installation.md)
-- [Guía de plantillas](docs/template-guide.md)
+- [API](docs/api.md)
+- [Contrato de réplica](docs/replication-contract.md)
 - [Arquitectura](docs/architecture.md)
 - [Seguridad](docs/security.md)
 - [Operación y recuperación](docs/operations.md)
-- [Contrato de replicación](docs/replication-contract.md)
-- [API](docs/api.md)
-- [Contrato de producto](docs/product-contract.md)
-- [Checklist de release](docs/release-checklist.md)
-
-Licencia: [Apache-2.0](LICENSE). El desarrollo continúa en el repositorio privado;
-`Ezr43l/vault-guardian-s` recibe el código y los archivos públicos preparados.
 
 ## Soporte
 
-El soporte se presta exclusivamente en la comunidad de Discord de Unraides:
+El soporte se presta en la comunidad de Discord de Unraides:
 
-**[Entrar en Unraides](https://discord.gg/8MAT6ZGJTW)**
+https://discord.gg/8MAT6ZGJTW
 
-No se atienden solicitudes de soporte en GitHub. Al pedir ayuda, indica la
-versión de la aplicación y el error, sin compartir contraseñas ni tokens.
+No compartas contraseñas, tokens, datos de Vaultwarden ni registros privados.
+
+## Licencia
+
+Código y documentación: [Apache License 2.0](LICENSE).
+
