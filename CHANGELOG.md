@@ -1,5 +1,13 @@
 # Cambios
 
+## [v1.0.20] - 2026-10-24 · SEGURIDAD
+
+### Corregido
+
+- Actualizada la base a Python 3.12.15 y a las revisiones corregidas de Alpine.
+- Actualizado el instalador de paquetes durante la construcción y retirado de la imagen
+  final, donde no es necesario.
+
 ## [v1.0.19] - 2026-09-13 · MEJORA
 
 ### Añadido

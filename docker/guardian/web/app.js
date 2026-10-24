@@ -2863,7 +2863,7 @@ async function initialize() {
       api('/api/v1/auth/status'),
       api('/api/version')
     ]);
-    $('#login-version').textContent = 'v' + String(version.version || '1.0.19');
+    $('#login-version').textContent = 'v' + String(version.version || '1.0.20');
     $('#setup-portal-access').value = authStatus.allow_insecure_portal ? 'http' : 'https';
     setPortalMode(authStatus.configured ? 'login' : 'setup');
     $('#login-form').querySelectorAll('input, button').forEach((element) => {

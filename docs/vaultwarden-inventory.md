@@ -27,7 +27,7 @@ Antes de crear una réplica, Guardian debe confirmar:
 - destino dentro de la raíz autorizada del host;
 - nombre, puerto y carpeta sin colisiones;
 - ausencia de `privileged`, host network, dispositivos y montajes adicionales;
-- usuario de contenedor por defecto de la imagen oficial (root); la versión 1.0.19 rechaza
+- usuario de contenedor por defecto de la imagen oficial (root); la versión 1.0.20 rechaza
   `Config.User` personalizado porque no puede preservar su UID/GID y permisos de `/data`
   de forma segura en todos los hosts;
 - conectividad con todos los Guardian y con floating-ip;

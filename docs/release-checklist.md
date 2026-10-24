@@ -5,10 +5,10 @@ proceso de publicación automática y sus requisitos de tareas en GitHub.
 
 ## Versión actual
 
-- Versión: `1.0.19`.
+- Versión: `1.0.20`.
 - Desarrollo privado: `Ezr43l/vault-guardian`.
 - Distribución pública: `Ezr43l/vault-guardian-s`.
-- Imagen por versión: `ghcr.io/ezr43l/vault-guardian-s:1.0.19`.
+- Imagen por versión: `ghcr.io/ezr43l/vault-guardian-s:1.0.20`.
 - Canal de la plantilla: `ghcr.io/ezr43l/vault-guardian-s:stable`.
 
 ## Pasos para una modificación
