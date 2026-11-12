@@ -1,5 +1,11 @@
 # Cambios
 
+## 1.0.21 — 2026-11-12
+
+- Actualización de seguridad de Python, Expat y paquetes del contenedor.
+- Correcciones oficiales de OpenSSL del 10 de noviembre, sobre la versión estable y verificadas por su huella.
+- cryptography compilada contra las mismas librerías corregidas, sin otra copia de OpenSSL incrustada.
+
 ## [v1.0.20] - 2026-10-24 · SEGURIDAD
 
 ### Corregido
